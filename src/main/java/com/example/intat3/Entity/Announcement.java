@@ -1,14 +1,13 @@
 package com.example.intat3.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 @Entity
@@ -19,32 +18,31 @@ import java.util.Date;
 @Table(name = "announcement")
 
 
-public class Anouncement {
+public class Announcement {
     @Id
-    @Column(name = "announcementId", nullable = false)
-    private Integer announcementId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "announcementId" , nullable = false)
+    private Integer id;
 
-    @Column(name = "announcemenTitle", nullable = false)
-    private String announcemenTitle;
+    @Column(name = "announcementTitle", nullable = false)
+    private String announcementTitle;
 
-    @Column(name = "announcemenDescription", nullable = false)
-    private String announcemenDescription;
+    @Column(name = "announcementDescription", nullable = false)
+    private String announcementDescription;
 
-    @Column(name = "publishDate", nullable = false)
-    private Date publishDate;
+    @Column(name = "publishDate" ,nullable = true)
+    private ZonedDateTime publishDate;
 
-    @Column(name = "closeDate", nullable = false)
-    private Date closeDate;
-
-
+    @Column(name = "closeDate", nullable = true)
+    private ZonedDateTime closeDate;
 
     @Column(name = "announcementDisplay", nullable = false)
-   private  String  announcementDisplay ;
+    private String announcementDisplay ;
 
-    @Id
-    @Column(name = "catagoryId", nullable = false)
-    private Category
-
+//     @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "categoryId")
+    private Category category;
 
 
 }

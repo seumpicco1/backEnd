@@ -1,5 +1,4 @@
 package com.example.intat3.Dto;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,19 +8,15 @@ import java.util.Date;
 
 @Getter
 @Setter
-//อันหน้าสุด
-public class AllAnnouncementDto {
-    private Integer id;
+public class UpdateAnnouncementDto {
+    private  Integer id;
     private String announcementTitle;
-    public  String getAnnouncementCategory (){
-        return  category == null ? "-" : category.getName();
-    }
-
+    private String announcementDescription;
     private ZonedDateTime publishDate;
     private ZonedDateTime closeDate;
     private String announcementDisplay ;
+    private Integer categoryId;
 
-    @JsonIgnore
-     private  CategoryDTO category;
+
 
 }

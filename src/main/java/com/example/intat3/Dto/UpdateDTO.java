@@ -9,19 +9,20 @@ import java.util.Date;
 
 @Getter
 @Setter
-//อันหน้าสุด
-public class AllAnnouncementDto {
-    private Integer id;
-    private String announcementTitle;
-    public  String getAnnouncementCategory (){
-        return  category == null ? "-" : category.getName();
-    }
+public class UpdateDTO {
 
+    private String announcementTitle;
+    private String announcementDescription;
     private ZonedDateTime publishDate;
     private ZonedDateTime closeDate;
     private String announcementDisplay ;
+    private Integer categoryId ;
 
+
+    public  String getannouncementCategory (){
+        return  category == null ? "-" : category.getCategoryName();
+    }
     @JsonIgnore
-     private  CategoryDTO category;
+    private  CategoryDTO category;
 
 }
