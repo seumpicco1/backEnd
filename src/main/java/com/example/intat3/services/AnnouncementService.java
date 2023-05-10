@@ -111,8 +111,20 @@ public class AnnouncementService {
     }
 
     public List<AllAnnouncementDto> getAnnByDisplay(String mode){
-        List<Announcement> ann = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
-        return ann.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
+        announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N").forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+            if(x.getCloseDate() != null){
+                ZonedDateTime currentTime = ZonedDateTime.now();
+                ZonedDateTime xTime = x.getCloseDate();
+                if(currentTime.compareTo(xTime) > 0 ){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
+                    x.setAnnouncementDisplay("N");
+                } else {
+                    x.setAnnouncementDisplay("Y");
+                }
+                announcementrepository.saveAndFlush(x);
+            }
+        });
+        List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
+        return all.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
     }
 
 
