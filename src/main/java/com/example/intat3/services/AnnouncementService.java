@@ -33,12 +33,7 @@ public class AnnouncementService {
     public AnnouncementDto getAnnouncementById(Integer announcementId) {
         Announcement a = announcementrepository.findById(announcementId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Announcement id " + announcementId +  " " + "does not exist !!!"));
-
-        System.out.println(a);
-        System.out.println(modelMapper.map(a,AnnouncementDto.class));
-
         return modelMapper.map(a,AnnouncementDto.class);
-
     }
 
     public List<AllAnnouncementDto> getAllAnnouncement() {
@@ -48,8 +43,6 @@ public class AnnouncementService {
     }
 
     public AnnouncementDto createAnn( UpdateAnnouncementDto upAnn) {
-        System.out.println(upAnn.getCategoryId());
-
         Category cat = categoryRepository.findById(upAnn.getCategoryId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + upAnn.getCategoryId() + " does not exist !!!"));
         Announcement aa = modelMapper.map(upAnn,Announcement.class);
         aa.setCategory(cat);
@@ -66,12 +59,12 @@ public class AnnouncementService {
         Announcement curAnn = announcementrepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Announcement id " + id + " " + "does not exist !!!"));
         Category cat = categoryRepository.findById(newAnn.getCategoryId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + newAnn.getCategoryId() + " does not exist !!!"));
         Announcement nAnn = modelMapper.map(newAnn,Announcement.class);
-        curAnn.setCategory(cat);
-        curAnn.setAnnouncementTitle(nAnn.getAnnouncementTitle());
-        curAnn.setAnnouncementDescription(nAnn.getAnnouncementDescription());
-        curAnn.setPublishDate(nAnn.getPublishDate());
-        curAnn.setCloseDate(nAnn.getCloseDate());
-        curAnn.setAnnouncementDisplay(nAnn.getAnnouncementDisplay());
+            curAnn.setCategory(cat);
+            curAnn.setAnnouncementTitle(nAnn.getAnnouncementTitle());
+            curAnn.setAnnouncementDescription(nAnn.getAnnouncementDescription());
+            curAnn.setPublishDate(nAnn.getPublishDate());
+            curAnn.setCloseDate(nAnn.getCloseDate());
+            curAnn.setAnnouncementDisplay(nAnn.getAnnouncementDisplay());
         announcementrepository.saveAndFlush(curAnn) ;
         return  modelMapper.map(curAnn,UpdateDTO.class);
     }
@@ -97,16 +90,13 @@ public class AnnouncementService {
     }
 
     public Page<Announcement> getAnnByModeNCategory(String mode, int id, Pageable pageable){
-        if(mode.equals("active") && id == 0 ){
-            return announcementrepository.findAllByAnnouncementDisplay("Y", pageable); //Y no cat sort
-        }else if(mode.equals("close") && id == 0){
-            return announcementrepository.findAllByAnnouncementDisplay("N", pageable);//N no cat sort
-        }else if(mode.equals("active") && id != 0){
-            Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
-            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, "Y", pageable);// Y with cat sort
+        if(id == 0){
+//          หา Ann โดยที่ id == 0 จะ return ทุกตัวโดยสนแค่ annDisplay เท่านั้น
+            return announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N", pageable); //Y no cat sort
         }else {
+//          หา Ann โดยที่ id != 0 จะทำการหา Object ของ Category เพื่อไปใช้ใน findAllByCategoryAndAnnouncementDisplay()
             Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
-            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, "N", pageable);// N with cat sort
+            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, mode.equals("active")?"Y":"N", pageable);// Y with cat sort
         }
     }
 
@@ -117,10 +107,10 @@ public class AnnouncementService {
                 ZonedDateTime xTime = x.getCloseDate();
                 if(currentTime.compareTo(xTime) > 0 ){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
                     x.setAnnouncementDisplay("N");
+                    announcementrepository.saveAndFlush(x);
                 } else {
                     x.setAnnouncementDisplay("Y");
                 }
-                announcementrepository.saveAndFlush(x);
             }
         });
         List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
