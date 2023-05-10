@@ -78,9 +78,8 @@ public class AnnouncementService {
 
     public PageDTO<AllAnnouncementDto> getAllPageAnn(int page, int size, String mode, int id){
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
-        List<Announcement> listAnn = ann.getContent();
-        listAnn.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+        List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");;
+        all.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
             if(x.getCloseDate() != null){
                 ZonedDateTime currentTime = ZonedDateTime.now();
                 ZonedDateTime xTime = x.getCloseDate();
@@ -92,7 +91,8 @@ public class AnnouncementService {
                 announcementrepository.saveAndFlush(x);
             }
         });
-        List<AllAnnouncementDto> ListDto = listAnn.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
+        Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
+        List<AllAnnouncementDto> ListDto = ann.getContent().stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
         return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber());
     }
 
