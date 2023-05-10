@@ -1,14 +1,12 @@
 package com.example.intat3.Controllers;
 
 
-import com.example.intat3.Dto.AllAnnouncementDto;
-import com.example.intat3.Dto.AnnouncementDto;
-import com.example.intat3.Dto.UpdateAnnouncementDto;
-import com.example.intat3.Dto.UpdateDTO;
+import com.example.intat3.Dto.*;
 import com.example.intat3.Entity.Announcement;
 import com.example.intat3.services.AnnouncementService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,5 +46,19 @@ public class AnnouncementController {
         return service.updateAnn( id, ann);
     }
 
+    @GetMapping("/page")
+    public PageDTO<AllAnnouncementDto> getAllPageAnn(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "5") int size,
+        @RequestParam(defaultValue = "0") int category,
+        @RequestParam(defaultValue = "active") String mode){
+        return service.getAllPageAnn(page, size, mode ,category);
+    }
+
+//         @GetMapping("/mode")
+//         public List<Announcement> getAnnByMode(@RequestParam(defaultValue = "active") String mode,
+//         @RequestParam(defaultValue = "0") int category){
+//             return service.getAnnByModeNCategory(mode ,category);
+//         }
 
 }

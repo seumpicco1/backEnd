@@ -1,9 +1,6 @@
 package com.example.intat3.services;
 
-import com.example.intat3.Dto.AllAnnouncementDto;
-import com.example.intat3.Dto.AnnouncementDto;
-import com.example.intat3.Dto.UpdateAnnouncementDto;
-import com.example.intat3.Dto.UpdateDTO;
+import com.example.intat3.Dto.*;
 import com.example.intat3.Entity.Announcement;
 import com.example.intat3.Entity.Category;
 import com.example.intat3.repositories.AnnouncementRepository;
@@ -12,10 +9,14 @@ import com.example.intat3.repositories.AnnouncementRepository;
 import com.example.intat3.repositories.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class AnnouncementService {
     private CategoryRepository categoryRepository;
     @Autowired
     private ModelMapper modelMapper;
+
 
     public AnnouncementDto getAnnouncementById(Integer announcementId) {
         Announcement a = announcementrepository.findById(announcementId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -67,24 +69,55 @@ public class AnnouncementService {
     }
 
 
-public UpdateDTO updateAnn(int id, UpdateAnnouncementDto newAnn) {
-    Announcement curAnn = announcementrepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Announcement id " + id + " " + "does not exist !!!"));
-    Category cat = categoryRepository.findById(newAnn.getCategoryId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + newAnn.getCategoryId() + " does not exist !!!"));
-    Announcement nAnn = modelMapper.map(newAnn,Announcement.class);
-    curAnn.setCategory(cat);
-    curAnn.setAnnouncementTitle(nAnn.getAnnouncementTitle());
-    curAnn.setAnnouncementDescription(nAnn.getAnnouncementDescription());
-    curAnn.setPublishDate(nAnn.getPublishDate());
-    curAnn.setCloseDate(nAnn.getCloseDate());
-    curAnn.setAnnouncementDisplay(nAnn.getAnnouncementDisplay());
-    announcementrepository.saveAndFlush(curAnn) ;
-    return  modelMapper.map(curAnn,UpdateDTO.class); // เอาอันที่มันเปลี่ยนข้อมูลแล้วมา mapDto เลยเทสผ่าน
-//     return  modelMapper.map(nAnn,UpdateDTO.class); มันเอาอันที่ส่งมา มาแปลงเป็นตัว announcent แล้วมันไม่มี catName มีแต่ catId
+    public UpdateDTO updateAnn(int id, UpdateAnnouncementDto newAnn) {
+        Announcement curAnn = announcementrepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Announcement id " + id + " " + "does not exist !!!"));
+        Category cat = categoryRepository.findById(newAnn.getCategoryId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category id " + newAnn.getCategoryId() + " does not exist !!!"));
+        Announcement nAnn = modelMapper.map(newAnn,Announcement.class);
+        curAnn.setCategory(cat);
+        curAnn.setAnnouncementTitle(nAnn.getAnnouncementTitle());
+        curAnn.setAnnouncementDescription(nAnn.getAnnouncementDescription());
+        curAnn.setPublishDate(nAnn.getPublishDate());
+        curAnn.setCloseDate(nAnn.getCloseDate());
+        curAnn.setAnnouncementDisplay(nAnn.getAnnouncementDisplay());
+        announcementrepository.saveAndFlush(curAnn) ;
+        return  modelMapper.map(curAnn,UpdateDTO.class);
+    }
 
+    public PageDTO<AllAnnouncementDto> getAllPageAnn(int page, int size, String mode, int id){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
+        List<Announcement> listAnn = ann.getContent();
 
-}
+        listAnn.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+            if(x.getCloseDate() != null){
+                ZonedDateTime currentTime = ZonedDateTime.now();
+                ZonedDateTime xTime = x.getCloseDate();
+                if(currentTime.compareTo(xTime) > 0 ){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
+                    x.setAnnouncementDisplay("N");
+                } else {
+                    x.setAnnouncementDisplay("Y");
+                }
+                announcementrepository.saveAndFlush(x);
+            }
+        });
 
+        List<AllAnnouncementDto> ListDto = listAnn.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
+        return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber());
+    }
 
+    public Page<Announcement> getAnnByModeNCategory(String mode, int id, Pageable pageable){
+        if(mode.equals("active") && id == 0 ){
+            return announcementrepository.findAllByAnnouncementDisplay("Y", pageable); //Y no cat sort
+        }else if(mode.equals("close") && id == 0){
+            return announcementrepository.findAllByAnnouncementDisplay("N", pageable);//N no cat sort
+        }else if(mode.equals("active") && id != 0){
+            Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
+            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, "Y", pageable);// Y with cat sort
+        }else {
+            Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
+            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, "N", pageable);// N with cat sort
+        }
+    }
 
 
 }
