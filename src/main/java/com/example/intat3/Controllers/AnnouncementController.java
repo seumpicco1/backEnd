@@ -21,15 +21,21 @@ public class AnnouncementController {
     @Autowired
     private ModelMapper modelMapper;
     @GetMapping("")
-    public List<AllAnnouncementDto> getAllAnnouncement (){
-
-        return  service.getAllAnnouncement();
+    public List<AllAnnouncementDto> getAllAnnouncement (@RequestParam(defaultValue = "admin") String mode){
+        if(mode.equals("admin")) {
+            System.out.println("asdasdqweqda");
+            return service.getAllAnnouncement();
+        }else if(mode.equals("active")){
+            return service.getAnnByDisplay(mode);
+        }else{
+            return service.getAnnByDisplay(mode);
+        }
     }
+
     @GetMapping("/{id}")
     public AnnouncementDto getById(@PathVariable Integer id){
         return service.getAnnouncementById(id);
     }
-
 
     @PostMapping("")
     public AnnouncementDto createAnnouncement(@RequestBody UpdateAnnouncementDto ann){
@@ -46,7 +52,7 @@ public class AnnouncementController {
         return service.updateAnn( id, ann);
     }
 
-    @GetMapping("/page")
+    @GetMapping("/pages")
     public PageDTO<AllAnnouncementDto> getAllPageAnn(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "5") int size,

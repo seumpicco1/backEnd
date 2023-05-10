@@ -30,7 +30,6 @@ public class AnnouncementService {
     @Autowired
     private ModelMapper modelMapper;
 
-
     public AnnouncementDto getAnnouncementById(Integer announcementId) {
         Announcement a = announcementrepository.findById(announcementId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Announcement id " + announcementId +  " " + "does not exist !!!"));
@@ -42,13 +41,11 @@ public class AnnouncementService {
 
     }
 
-
     public List<AllAnnouncementDto> getAllAnnouncement() {
         List<Announcement> aa = announcementrepository.findAll();
         Collections.reverse(aa);
         return aa.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
     }
-
 
     public AnnouncementDto createAnn( UpdateAnnouncementDto upAnn) {
         System.out.println(upAnn.getCategoryId());
@@ -60,14 +57,10 @@ public class AnnouncementService {
         return modelMapper.map(aa,AnnouncementDto.class);
     }
 
-
-
-
     public void deleteAnn(int id){
         Announcement a = announcementrepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Announcement id " + id +  " " + "does not exist !!!"));
         announcementrepository.delete(a);
     }
-
 
     public UpdateDTO updateAnn(int id, UpdateAnnouncementDto newAnn) {
         Announcement curAnn = announcementrepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Announcement id " + id + " " + "does not exist !!!"));
@@ -87,7 +80,6 @@ public class AnnouncementService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
         List<Announcement> listAnn = ann.getContent();
-//sdasdsd
         listAnn.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
             if(x.getCloseDate() != null){
                 ZonedDateTime currentTime = ZonedDateTime.now();
@@ -100,7 +92,6 @@ public class AnnouncementService {
                 announcementrepository.saveAndFlush(x);
             }
         });
-
         List<AllAnnouncementDto> ListDto = listAnn.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
         return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber());
     }
@@ -117,6 +108,11 @@ public class AnnouncementService {
             Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
             return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, "N", pageable);// N with cat sort
         }
+    }
+
+    public List<AllAnnouncementDto> getAnnByDisplay(String mode){
+        List<Announcement> ann = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
+        return ann.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
     }
 
 
