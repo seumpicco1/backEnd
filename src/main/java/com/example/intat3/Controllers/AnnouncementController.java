@@ -54,11 +54,4 @@ public class AnnouncementController {
         @RequestParam(defaultValue = "active") String mode){
         return service.getAllPageAnn(page, size, mode ,category);
     }
-
-//         @GetMapping("/mode")
-//         public List<Announcement> getAnnByMode(@RequestParam(defaultValue = "active") String mode,
-//         @RequestParam(defaultValue = "0") int category){
-//             return service.getAnnByModeNCategory(mode ,category);
-//         }
-
 }
