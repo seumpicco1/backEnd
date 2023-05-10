@@ -87,7 +87,7 @@ public class AnnouncementService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
         List<Announcement> listAnn = ann.getContent();
-
+//sdasdsd
         listAnn.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
             if(x.getCloseDate() != null){
                 ZonedDateTime currentTime = ZonedDateTime.now();
