@@ -71,49 +71,53 @@ public class AnnouncementService {
 
     public PageDTO<AllAnnouncementDto> getAllPageAnn(int page, int size, String mode, int id){
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");;
-        all.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
-            if(x.getCloseDate() != null){
-                ZonedDateTime currentTime = ZonedDateTime.now();
-                ZonedDateTime xTime = x.getCloseDate();
-                if(currentTime.compareTo(xTime) > 0 ){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
-                    x.setAnnouncementDisplay("N");
-                } else {
-                    x.setAnnouncementDisplay("Y");
-                }
-                announcementrepository.saveAndFlush(x);
-            }
-        });
+//         List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
+//         List<Announcement> all = announcementrepository.findAll();
+//         all.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+//             ZonedDateTime currentTime = ZonedDateTime.now();
+//             if(x.getCloseDate() != null){
+//                 ZonedDateTime xTime = x.getCloseDate();
+//                 if(currentTime.compareTo(xTime) > 0 && x.getAnnouncementDisplay().equals("Y")){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
+//                     x.setAnnouncementDisplay("N");
+//                 }
+//             }
+//             if(x.getPublishDate() != null && currentTime.compareTo(x.getPublishDate()) < 0){
+//                 x.setAnnouncementDisplay("N");
+//             }
+//             announcementrepository.saveAndFlush(x);
+//         });
         Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
         List<AllAnnouncementDto> ListDto = ann.getContent().stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
-        return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber());
+        return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber()); // รี
     }
 
     public Page<Announcement> getAnnByModeNCategory(String mode, int id, Pageable pageable){
         if(id == 0){
+            return mode.equals("active")?announcementrepository.findByCloseDateIsNullOrCloseDateAfterAndAnnouncementDisplay(ZonedDateTime.now(), "Y",  pageable):announcementrepository.findByCloseDateBeforeAndAnnouncementDisplay(ZonedDateTime.now(), "Y",  pageable);
 //          หา Ann โดยที่ id == 0 จะ return ทุกตัวโดยสนแค่ annDisplay เท่านั้น
-            return announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N", pageable); //Y no cat sort
+//             return announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N", pageable); //Y no cat sort
         }else {
 //          หา Ann โดยที่ id != 0 จะทำการหา Object ของ Category เพื่อไปใช้ใน findAllByCategoryAndAnnouncementDisplay()
             Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
-            return announcementrepository.findAllByCategoryAndAnnouncementDisplay(cat, mode.equals("active")?"Y":"N", pageable);// Y with cat sort
+            return mode.equals("active")?announcementrepository.findByCloseDateAfterAndCategoryAndAnnouncementDisplayOrCloseDateIsNullAndCategoryAndAnnouncementDisplay( ZonedDateTime.now(), cat,"Y",  cat,"Y", pageable):announcementrepository.findByCategoryAndCloseDateBeforeAndAnnouncementDisplay(cat, ZonedDateTime.now(), "Y", pageable);// Y with cat sort
         }
     }
 
     public List<AllAnnouncementDto> getAnnByDisplay(String mode){
-        announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N").forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
-            if(x.getCloseDate() != null){
-                ZonedDateTime currentTime = ZonedDateTime.now();
-                ZonedDateTime xTime = x.getCloseDate();
-                if(currentTime.compareTo(xTime) > 0 ){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
-                    x.setAnnouncementDisplay("N");
-                    announcementrepository.saveAndFlush(x);
-                } else {
-                    x.setAnnouncementDisplay("Y");
-                }
-            }
-        });
-        List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
+//         announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N").forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+//         announcementrepository.findAll().forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
+//             ZonedDateTime currentTime = ZonedDateTime.now();
+//             if(x.getCloseDate() != null){
+//                 if(currentTime.compareTo(x.getCloseDate()) > 0 && x.getAnnouncementDisplay().equals("Y")){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
+//                     x.setAnnouncementDisplay("N");
+//                 }
+//             }
+//             if(x.getPublishDate() != null && currentTime.compareTo(x.getPublishDate()) < 0){
+//                 x.setAnnouncementDisplay("N");
+//             }
+//             announcementrepository.saveAndFlush(x);
+//         });
+        List<Announcement> all = mode.equals("active")?announcementrepository.findByCloseDateAfter(ZonedDateTime.now()):announcementrepository.findByCloseDateBefore(ZonedDateTime.now());
         return all.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
     }
 
