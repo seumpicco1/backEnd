@@ -5,7 +5,6 @@ import com.example.intat3.Entity.Announcement;
 import com.example.intat3.Entity.Category;
 import com.example.intat3.repositories.AnnouncementRepository;
 
-
 import com.example.intat3.repositories.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +43,11 @@ public class AnnouncementService {
     }
 
     public AnnouncementDto createAnn( UpdateAnnouncementDto upAnn) {
+        if (upAnn.getAnnouncementDisplay() == null) {
+            upAnn.setAnnouncementDisplay("N");
+        } else {
+            upAnn.setAnnouncementDisplay(upAnn.getAnnouncementDisplay());
+        }
         Category cat = categoryRepository.findById(upAnn.getCategoryId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + upAnn.getCategoryId() + " does not exist !!!"));
         Announcement aa = modelMapper.map(upAnn,Announcement.class);
         aa.setCategory(cat);
@@ -69,56 +74,40 @@ public class AnnouncementService {
         return  modelMapper.map(curAnn,UpdateDTO.class);
     }
 
-    public PageDTO<AllAnnouncementDto> getAllPageAnn(int page, int size, String mode, int id){
+    public PageDTO<AllAnnouncementDto> getAllPageAnn(int page, int size, String mode, int catId){
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-//         List<Announcement> all = announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N");
-//         List<Announcement> all = announcementrepository.findAll();
-//         all.forEach(x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
-//             ZonedDateTime currentTime = ZonedDateTime.now();
-//             if(x.getCloseDate() != null){
-//                 ZonedDateTime xTime = x.getCloseDate();
-//                 if(currentTime.compareTo(xTime) > 0 && x.getAnnouncementDisplay().equals("Y")){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
-//                     x.setAnnouncementDisplay("N");
-//                 }
-//             }
-//             if(x.getPublishDate() != null && currentTime.compareTo(x.getPublishDate()) < 0){
-//                 x.setAnnouncementDisplay("N");
-//             }
-//             announcementrepository.saveAndFlush(x);
-//         });
-        Page<Announcement> ann = getAnnByModeNCategory(mode, id, pageable);
-        List<AllAnnouncementDto> ListDto = ann.getContent().stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
-        return new PageDTO<>(ListDto,ann.isLast(),ann.isFirst(),ann.getTotalPages(),ann.getNumberOfElements(),ann.getSize(),ann.getNumber()); // รี
+         List<AllAnnouncementDto> all = getAnnByDisplay(mode,catId);
+        int start = page * size;
+        int end = Math.min(start + size, all.size());
+        System.out.println(all.size());
+        Page<AllAnnouncementDto> ann = new PageImpl<>(all.subList(start,end), pageable, all.size());
+        return modelMapper.map(ann, PageDTO.class);
     }
 
-    public Page<Announcement> getAnnByModeNCategory(String mode, int id, Pageable pageable){
-        if(id == 0){
-            return mode.equals("active")?announcementrepository.findByCloseDateIsNullOrCloseDateAfterAndAnnouncementDisplay(ZonedDateTime.now(), "Y",  pageable):announcementrepository.findByCloseDateBeforeAndAnnouncementDisplay(ZonedDateTime.now(), "Y",  pageable);
-//          หา Ann โดยที่ id == 0 จะ return ทุกตัวโดยสนแค่ annDisplay เท่านั้น
-//             return announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N", pageable); //Y no cat sort
+    public List<AllAnnouncementDto> getAnnByDisplay(String mode, int cat){
+        List<Announcement> all = new ArrayList<>();
+        if(cat==0){
+            all = announcementrepository.findAll();
         }else {
-//          หา Ann โดยที่ id != 0 จะทำการหา Object ของ Category เพื่อไปใช้ใน findAllByCategoryAndAnnouncementDisplay()
-            Category cat = categoryRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + id + " does not exist !!!"));
-            return mode.equals("active")?announcementrepository.findByCloseDateAfterAndCategoryAndAnnouncementDisplayOrCloseDateIsNullAndCategoryAndAnnouncementDisplay( ZonedDateTime.now(), cat,"Y",  cat,"Y", pageable):announcementrepository.findByCategoryAndCloseDateBeforeAndAnnouncementDisplay(cat, ZonedDateTime.now(), "Y", pageable);// Y with cat sort
+            Category category = categoryRepository.findById(cat).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + cat + " does not exist !!!"));
+            all = announcementrepository.findAllByCategory(category);
         }
-    }
 
-    public List<AllAnnouncementDto> getAnnByDisplay(String mode){
-//         announcementrepository.findAllByAnnouncementDisplay(mode.equals("active")?"Y":"N").forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
-//         announcementrepository.findAll().forEach( x -> { // loop เพื่อเช็ค close date ของข้อมูลที่ทำการ query ออกมา
-//             ZonedDateTime currentTime = ZonedDateTime.now();
-//             if(x.getCloseDate() != null){
-//                 if(currentTime.compareTo(x.getCloseDate()) > 0 && x.getAnnouncementDisplay().equals("Y")){// มากกว่า 0 คือเลยเวลา close date มาแล้ว
-//                     x.setAnnouncementDisplay("N");
-//                 }
-//             }
-//             if(x.getPublishDate() != null && currentTime.compareTo(x.getPublishDate()) < 0){
-//                 x.setAnnouncementDisplay("N");
-//             }
-//             announcementrepository.saveAndFlush(x);
-//         });
-        List<Announcement> all = mode.equals("active")?announcementrepository.findByCloseDateAfter(ZonedDateTime.now()):announcementrepository.findByCloseDateBefore(ZonedDateTime.now());
-        return all.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
+        List<Announcement> filtered = new ArrayList<>();
+        all.forEach(x -> {
+            ZonedDateTime current = ZonedDateTime.now();
+            if(mode.equals("active")){
+                if((x.getPublishDate()==null || current.compareTo(x.getPublishDate())>0) && (x.getCloseDate()==null||current.compareTo(x.getCloseDate())<0)){
+                    filtered.add(x);
+                }
+            } else if (!mode.equals("active")) {
+                if((x.getCloseDate() != null && current.compareTo(x.getCloseDate())>0) && x.getAnnouncementDisplay().equals("Y") ){
+                    filtered.add(x);
+                }
+            }
+        });
+        Collections.reverse(filtered);
+        return filtered.stream().map(x->modelMapper.map(x, AllAnnouncementDto.class)).collect(Collectors.toList());
     }
 
 
