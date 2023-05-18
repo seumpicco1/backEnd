@@ -44,5 +44,7 @@ public class Announcement {
     @JoinColumn(name = "categoryId")
     private Category category;
 
+    @Column(name = "viewCount", nullable = false)
+    private Integer viewer;
 
 }

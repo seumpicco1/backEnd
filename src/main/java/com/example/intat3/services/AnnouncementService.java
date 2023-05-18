@@ -70,6 +70,7 @@ public class AnnouncementService {
             curAnn.setPublishDate(nAnn.getPublishDate());
             curAnn.setCloseDate(nAnn.getCloseDate());
             curAnn.setAnnouncementDisplay(nAnn.getAnnouncementDisplay());
+            curAnn.setViewer(nAnn.getViewer());
         announcementrepository.saveAndFlush(curAnn) ;
         return  modelMapper.map(curAnn,UpdateDTO.class);
     }
@@ -100,7 +101,7 @@ public class AnnouncementService {
                 if((x.getPublishDate()==null || current.compareTo(x.getPublishDate())>0) && (x.getCloseDate()==null||current.compareTo(x.getCloseDate())<0)){
                     filtered.add(x);
                 }
-            } else if (!mode.equals("active")) {
+            } else {
                 if((x.getCloseDate() != null && current.compareTo(x.getCloseDate())>0) && x.getAnnouncementDisplay().equals("Y") ){
                     filtered.add(x);
                 }

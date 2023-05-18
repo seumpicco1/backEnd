@@ -17,12 +17,11 @@ public class AnnouncementDto {
     private ZonedDateTime closeDate;
     private String announcementDisplay ;
     private Integer categoryId ;
-
-
     public  String getannouncementCategory (){
         return  category == null ? "-" : category.getName();
     }
     @JsonIgnore
-     private  CategoryDTO category;
+    private  CategoryDTO category;
+    private Integer viewer;
 
 }

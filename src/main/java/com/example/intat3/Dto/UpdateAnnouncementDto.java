@@ -1,5 +1,6 @@
 package com.example.intat3.Dto;
 import com.example.intat3.validation.DateValid;
+import com.example.intat3.validation.ViewValid;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -28,9 +29,11 @@ public class UpdateAnnouncementDto {
 
     @Pattern(regexp = "[YN]", message = "must be either 'Y' or 'N'")
     private String announcementDisplay ;
+    
     @NotNull(message = "must not be null") @Min(value = 1, message = "does not exists") @Max(value = 4, message = "does not exists")
     private Integer categoryId;
 
-
+    @ViewValid @Min(value = 0, message = "must be a positive value")
+    private Integer viewer;
 
 }

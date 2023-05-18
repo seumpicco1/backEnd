@@ -16,12 +16,10 @@ public class AllAnnouncementDto {
     public  String getAnnouncementCategory (){
         return  category == null ? "-" : category.getName();
     }
-
     private ZonedDateTime publishDate;
     private ZonedDateTime closeDate;
     private String announcementDisplay ;
-
     @JsonIgnore
-     private  CategoryDTO category;
-
+    private  CategoryDTO category;
+    private Integer viewer;
 }

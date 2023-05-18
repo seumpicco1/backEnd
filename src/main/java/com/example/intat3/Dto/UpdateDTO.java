@@ -24,5 +24,6 @@ public class UpdateDTO {
     }
     @JsonIgnore
     private  CategoryDTO category;
+    private Integer viewer;
 
 }

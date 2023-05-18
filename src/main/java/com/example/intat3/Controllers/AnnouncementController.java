@@ -5,6 +5,7 @@ import com.example.intat3.Dto.*;
 import com.example.intat3.Entity.Announcement;
 import com.example.intat3.advices.ErrorResponse;
 import com.example.intat3.services.AnnouncementService;
+import com.example.intat3.validation.ViewValid;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ public class AnnouncementController {
     }
 
     @PutMapping("/{id}")
-    public UpdateDTO updateProduct(@PathVariable Integer id,@Valid @RequestBody UpdateAnnouncementDto ann) {
+        public UpdateDTO updateProduct(@PathVariable  Integer id, @Valid @RequestBody UpdateAnnouncementDto ann) {
         return service.updateAnn( id, ann);
     }
 
