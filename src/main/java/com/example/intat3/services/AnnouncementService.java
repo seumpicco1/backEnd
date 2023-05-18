@@ -33,6 +33,8 @@ public class AnnouncementService {
     public AnnouncementDto getAnnouncementById(Integer announcementId) {
         Announcement a = announcementrepository.findById(announcementId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Announcement id " + announcementId +  " " + "does not exist !!!"));
+        a.setViewer(a.getViewer()+1);
+        announcementrepository.saveAndFlush(a);
         return modelMapper.map(a,AnnouncementDto.class);
     }
 

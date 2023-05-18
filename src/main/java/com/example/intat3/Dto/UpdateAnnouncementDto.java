@@ -29,7 +29,7 @@ public class UpdateAnnouncementDto {
 
     @Pattern(regexp = "[YN]", message = "must be either 'Y' or 'N'")
     private String announcementDisplay ;
-    
+
     @NotNull(message = "must not be null") @Min(value = 1, message = "does not exists") @Max(value = 4, message = "does not exists")
     private Integer categoryId;
 
