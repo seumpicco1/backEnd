@@ -30,11 +30,13 @@ public class AnnouncementService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public AnnouncementDto getAnnouncementById(Integer announcementId) {
+    public AnnouncementDto getAnnouncementById(Integer announcementId, boolean count ) {
         Announcement a = announcementrepository.findById(announcementId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Announcement id " + announcementId +  " " + "does not exist !!!"));
-        a.setViewer(a.getViewer()+1);
-        announcementrepository.saveAndFlush(a);
+        if (count) {
+            a.setViewer(a.getViewer()+1);
+            announcementrepository.saveAndFlush(a);
+        }
         return modelMapper.map(a,AnnouncementDto.class);
     }
 

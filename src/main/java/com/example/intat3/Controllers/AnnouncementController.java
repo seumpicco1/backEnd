@@ -43,8 +43,8 @@ public class AnnouncementController {
         }
     }
     @GetMapping("/{id}")
-    public AnnouncementDto getById(@PathVariable Integer id){
-        return service.getAnnouncementById(id);
+    public AnnouncementDto getById(@PathVariable Integer id, @RequestParam(defaultValue = "false") boolean count){
+        return service.getAnnouncementById(id, count);
     }
 
     @PostMapping("")
