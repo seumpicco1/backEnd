@@ -33,7 +33,7 @@ public class UpdateAnnouncementDto {
     @NotNull(message = "must not be null") @Min(value = 1, message = "does not exists") @Max(value = 4, message = "does not exists")
     private Integer categoryId;
 
-    @ViewValid @Min(value = 0, message = "must be a positive value")
+    @Min(value = 0, message = "must be a positive value")
     private Integer viewer;
 
 }

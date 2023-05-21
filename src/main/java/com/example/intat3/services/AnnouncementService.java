@@ -52,6 +52,7 @@ public class AnnouncementService {
         } else {
             upAnn.setAnnouncementDisplay(upAnn.getAnnouncementDisplay());
         }
+        if(upAnn.getViewer()==null)upAnn.setViewer(0);
         Category cat = categoryRepository.findById(upAnn.getCategoryId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Category id " + upAnn.getCategoryId() + " does not exist !!!"));
         Announcement aa = modelMapper.map(upAnn,Announcement.class);
         aa.setCategory(cat);
